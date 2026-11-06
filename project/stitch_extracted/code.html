@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wireless-IDS | Explainable Airspace SecOps Dashboard</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            canvas: '#ECEFF4',
+            surface: '#FFFFFF',
+            surfaceSoft: '#F6F8FA',
+            darkPill: '#16181C',
+            accentMint: '#C4EBE4',
+            accentMintDark: '#1E9E88',
+            accentMintSoft: '#D7F3EE',
+            borderPill: '#E2E6EB',
+            textMain: '#14171A',
+            textMuted: '#687684'
+          },
+          boxShadow: {
+            'neu': '0 10px 25px rgba(0, 0, 0, 0.035), 0 2px 6px rgba(0, 0, 0, 0.02)',
+            'neu-card': '0 12px 30px -4px rgba(22, 28, 45, 0.05), 0 4px 12px rgba(22, 28, 45, 0.02)',
+            'neu-inset': 'inset 0 2px 4px rgba(0,0,0,0.03), inset 0 1px 2px rgba(0,0,0,0.02)',
+            'neu-float': '0 14px 28px rgba(18, 38, 63, 0.06), 0 2px 8px rgba(18, 38, 63, 0.03)',
+            'pill': '0 2px 5px rgba(0,0,0,0.04)'
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #D6DCE5;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    /* Custom delicate scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-textMain antialiased flex items-center justify-center p-2 sm:p-5 lg:p-7 selection:bg-accentMint selection:text-textMain">
+<!-- Outer Rounded Tablet / Dashboard Frame (Exact aesthetic from Image 1) -->
+<div class="w-full max-w-[1520px] bg-canvas rounded-[36px] sm:rounded-[44px] p-3 sm:p-5 lg:p-6 shadow-[0_30px_70px_rgba(15,23,42,0.14),0_0_0_1px_rgba(255,255,255,0.8)] border border-white/60">
+<!-- Top Header Bar -->
+<header class="w-full flex items-center justify-between gap-3 mb-5 px-2">
+<!-- Search and Logo -->
+<div class="flex items-center gap-3 w-full max-w-md">
+<!-- Logo Icon Pill -->
+<div class="w-11 h-11 rounded-full bg-white shadow-neu flex items-center justify-center shrink-0 border border-white">
+<svg class="w-5 h-5 text-darkPill" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+<path d="M2 17l10 5 10-5"></path>
+<path d="M2 12l10 5 10-5"></path>
+</svg>
+</div>
+<!-- Pill Search Input -->
+<div class="relative flex-1">
+<input class="w-full h-11 bg-white/90 border-0 rounded-full pl-5 pr-20 text-xs text-textMain placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accentMintDark/40 shadow-neu tracking-normal" placeholder="Search airspace, BSSID, client MAC, or telemetry..." type="text"/>
+<div class="absolute right-2 top-1.5 flex items-center gap-1">
+<button class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+</div>
+</div>
+<!-- Top Right Actions & Status Badges -->
+<div class="flex items-center gap-2.5 shrink-0">
+<!-- Online Support Pill -->
+<div class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-neu text-xs font-semibold text-slate-700 border border-white">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span>Airspace Monitor Active</span>
+</div>
+<!-- Notification Bell -->
+<button class="w-11 h-11 rounded-full bg-white shadow-neu border border-white flex items-center justify-center text-slate-700 hover:text-black transition-colors relative">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="absolute top-2.5 right-2.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white"></span>
+</button>
+<!-- User Profile Pill -->
+<div class="flex items-center gap-2 pl-3.5 pr-1.5 py-1.5 bg-white shadow-neu rounded-full border border-white">
+<div class="flex flex-col text-right">
+<span class="text-xs font-bold leading-tight text-textMain">Elena Vance</span>
+<span class="text-[10px] text-textMuted leading-tight">SecOps Lead</span>
+</div>
+<img alt="Elena Vance" class="w-8 h-8 rounded-full object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH4gZtn5zDoeFAsnsBYb372WunVEFxgEjbEF9jBiWsi0pRyuE7VGm-J9msU6BOXq7bVUGf0ce5zY62DBez6n4KnnOW60AH83lc_-Eqpbb-MIlKzL_ZUaujtu7n-XR0zg4z9xuB6iWORCX2byKeXTV8Wb-xA-q_pR0iPStkR8fMH-VGBIWoBw75KlMG0Ke7q__l9prm_5866HUiRRlx64VL-XQ7HAwz_kXcs5XM6SKIJ1Oa6kTVvJImaw"/>
+</div>
+</div>
+</header>
+<!-- Main Outer Container: Left Nav + Center Content + Right Panel -->
+<div class="flex gap-4 lg:gap-5 items-stretch">
+<!-- Sleek Curved Left Dock Navigation Bar (as in Image 1) -->
+<aside class="w-14 sm:w-16 rounded-[28px] bg-white shadow-neu border border-white flex flex-col items-center py-5 justify-between shrink-0">
+<!-- Top Nav Icons -->
+<div class="flex flex-col items-center gap-4 text-slate-500">
+<a class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-black transition-colors" href="#overview" title="Airspace Radar">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<!-- Active Nav Item with Dot -->
+<a class="relative w-10 h-10 rounded-2xl bg-canvas flex items-center justify-center text-darkPill shadow-inner" href="#activity" title="Airspace Dashboard">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="absolute -left-2 w-1.5 h-1.5 rounded-full bg-slate-900"></span>
+</a>
+<a class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-black transition-colors" href="#incidents" title="Candidate Incidents">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-black transition-colors" href="#event-log" title="PCAP Event Log">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-black transition-colors" href="#xai" title="SHAP &amp; AI Explanations">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-black transition-colors" href="#settings" title="Engine Settings">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+</div>
+<!-- Bottom Controls: Day/Night Neumorphic Pill Switch & Avatar -->
+<div class="flex flex-col items-center gap-4">
+<!-- Neumorphic Toggle Switch -->
+<div class="w-6 h-12 bg-darkPill rounded-full p-1 flex flex-col justify-start items-center cursor-pointer shadow-neu">
+<span class="w-4 h-4 rounded-full bg-white shadow-sm flex items-center justify-center text-[8px]">☀️</span>
+</div>
+<!-- Secondary Operator Avatar -->
+<button class="w-9 h-9 rounded-full overflow-hidden shadow-neu border border-white hover:scale-105 transition-transform">
+<img alt="Analyst" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWTTty2UgWUyUa8qo4fjmYjZVDrMJg3AoiTnEAP_Ueh6oYh87KewECdGou3SwdMyrCWLq45qLZe-uDGyM7BT6ylKFEWECidcdb3GmXDmXHcEW3qwSMSTSD03tg2mIODGBa1U-qVBmT6V7WhhdZDZonBFdGq8oycZlxgul8E2w76OIA1-2acDTZcFUeu7s3xst41WrzWuCFTcnti1-hHKkiAzb3TDy86nuOrZAKSk1HuW_6Rld4_3zZGQ"/>
+</button>
+<button class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-black">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</aside>
+<!-- Center & Main Workspace (Styled exactly to Image 1) -->
+<main class="flex-1 flex flex-col gap-5 min-w-0">
+<!-- Title & Inline KPI Badges Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
+<div>
+<h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-textMain">Airspace Security Stats</h1>
+<p class="text-xs text-textMuted font-medium mt-0.5">802.11 Monitor Interface: <span class="font-mono text-darkPill font-semibold">wlan0mon</span> (Channel Sweep 1, 6, 11)</p>
+</div>
+<!-- Quick Top Inline Stat Chips (like Image 1: 124 hours, 315 sites) -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-slate-300 flex items-center justify-center text-darkPill">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<p class="text-[11px] text-textMuted font-medium">Packets Swept</p>
+<p class="text-xl font-extrabold leading-none text-textMain font-mono">124<span class="text-xs font-normal text-textMuted ml-1">k/hour</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-slate-300 flex items-center justify-center text-darkPill">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"></path>
+</svg>
+</div>
+<div>
+<p class="text-[11px] text-textMuted font-medium">APs Audited</p>
+<p class="text-xl font-extrabold leading-none text-textMain font-mono">315<span class="text-xs font-normal text-textMuted ml-1">nodes</span></p>
+</div>
+</div>
+</div>
+</div>
+<!-- Filter Pill Chips Row -->
+<div class="flex items-center justify-between gap-3 px-1 overflow-x-auto py-1">
+<div class="flex items-center gap-2">
+<button class="px-4 py-1.5 rounded-full bg-white text-xs font-medium text-textMuted hover:text-black shadow-pill border border-white">All</button>
+<button class="px-5 py-1.5 rounded-full bg-accentMint text-xs font-bold text-darkPill shadow-pill border border-white">RF Activity</button>
+<button class="px-4 py-1.5 rounded-full bg-white text-xs font-medium text-textMuted hover:text-black shadow-pill border border-white">Protection</button>
+<button class="px-4 py-1.5 rounded-full bg-white text-xs font-medium text-textMuted hover:text-black shadow-pill border border-white">Gemini XAI</button>
+<button class="px-4 py-1.5 rounded-full bg-white text-xs font-medium text-textMuted hover:text-black shadow-pill border border-white">Resources</button>
+<button class="w-7 h-7 rounded-full bg-white text-textMuted flex items-center justify-center shadow-pill hover:text-black font-semibold text-sm">+</button>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-full bg-white text-slate-600 flex items-center justify-center shadow-pill hover:text-black text-xs" title="Download Report">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="w-8 h-8 rounded-full bg-white text-slate-600 flex items-center justify-center shadow-pill hover:text-black text-xs" title="Live Sweeper Config">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+<!-- Central Mint Neo-Sculpted Activity Graph Card (Mirrors large card in Image 1) -->
+<section class="relative bg-gradient-to-br from-[#D4F1EB] via-[#C9EFE7] to-[#BEEBE2] rounded-[32px] p-6 lg:p-7 shadow-neu-card border border-white/70 overflow-hidden">
+<!-- Top Card Meta & Channel Range Filter -->
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+<div class="flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-white/70 backdrop-blur text-[11px] font-bold text-darkPill flex items-center gap-1 shadow-sm">
+                Channels <svg class="w-3 h-3 ml-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+</span>
+<div class="flex items-center bg-white/60 backdrop-blur p-0.5 rounded-full text-[10px] font-semibold text-slate-600">
+<span class="px-2.5 py-0.5">1h</span>
+<span class="px-2.5 py-0.5 bg-white rounded-full text-darkPill shadow-sm">24h</span>
+<span class="px-2.5 py-0.5">7d</span>
+<span class="px-2.5 py-0.5">Live</span>
+</div>
+<span class="text-xs font-medium text-slate-600 ml-1">&lt; ISM Bands 2.4/5.8G &gt;</span>
+</div>
+<!-- Legends -->
+<div class="flex items-center gap-4 text-[11px] font-medium text-slate-700">
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-white/80 border border-slate-300"></span> 802.11 Clean Traffic
+              </span>
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-darkPill"></span> Anomalous Probes / Jamming
+              </span>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+<!-- Left Info Area -->
+<div class="lg:col-span-4 space-y-4">
+<div>
+<h3 class="text-2xl font-black text-textMain tracking-tight">Your Airspace Activity</h3>
+<p class="text-xs text-slate-700 font-medium mt-1">Real-time spectrum occupancy &amp; deauth frame velocity.</p>
+</div>
+<!-- Compact Floating Capsule 1 -->
+<div class="bg-white/80 backdrop-blur rounded-2xl p-3 shadow-sm border border-white/60 flex items-center justify-between">
+<div>
+<p class="text-[11px] font-medium text-slate-600">Active Sensors</p>
+<p class="text-xs font-bold text-textMain">3 Alpha Adapters Online</p>
+</div>
+<div class="flex items-center gap-1 text-slate-600">
+<span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-mono text-[10px] font-bold">3</span>
+<button class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold hover:bg-slate-200">+</button>
+</div>
+</div>
+<!-- Compact Floating Capsule 2 -->
+<div class="bg-white/80 backdrop-blur rounded-2xl p-3 shadow-sm border border-white/60">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-[11px] font-medium text-slate-600">Unconfirmed deauth kicks</p>
+<p class="text-xs font-bold text-emerald-800">0 detected this session</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[10px] font-bold">100% Secure</span>
+</div>
+<div class="flex items-center gap-2 mt-2 pt-2 border-t border-slate-200/50">
+<button class="px-2.5 py-1 rounded-full bg-white text-[10px] font-semibold text-slate-700 hover:bg-slate-50 shadow-sm">View trace</button>
+<button class="px-2.5 py-1 rounded-full bg-white text-[10px] font-semibold text-slate-700 hover:bg-slate-50 shadow-sm">Audit log</button>
+<button class="w-5 h-5 rounded-full bg-white text-[10px] font-bold text-slate-500 flex items-center justify-center shadow-sm">···</button>
+</div>
+</div>
+</div>
+<!-- Right Bar Chart Area (Neumorphic Pill Bars precisely as in Image 1) -->
+<div class="lg:col-span-8 flex items-end justify-between gap-2 sm:gap-3 pt-6 min-h-[190px]">
+<!-- Channel 1 -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-8 rounded-2xl bg-white/80 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 1</span>
+</div>
+<!-- Channel 2 -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-14 rounded-2xl bg-white/80 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 3</span>
+</div>
+<!-- Channel 6 (Active) -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-10 rounded-2xl bg-slate-500/40"></div>
+<div class="w-full h-12 rounded-2xl bg-white/90 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 6</span>
+</div>
+<!-- Channel 11 (High Occupancy Pill Stack) -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-7 rounded-2xl bg-darkPill text-white flex items-center justify-center text-[9px] font-mono shadow-md">0</div>
+<div class="w-full h-12 rounded-2xl bg-slate-500/50"></div>
+<div class="w-full h-10 rounded-2xl bg-white/90 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 11</span>
+</div>
+<!-- Channel 36 (High Traffic Pill Stack) -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-8 rounded-2xl bg-darkPill shadow-md"></div>
+<div class="w-full h-7 rounded-2xl bg-darkPill shadow-md"></div>
+<div class="w-full h-10 rounded-2xl bg-slate-500/60"></div>
+<div class="w-full h-10 rounded-2xl bg-white/90 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 36</span>
+</div>
+<!-- Channel 40 -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-9 rounded-2xl bg-darkPill shadow-md"></div>
+<div class="w-full h-10 rounded-2xl bg-slate-500/50"></div>
+<div class="w-full h-10 rounded-2xl bg-white/90 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 40</span>
+</div>
+<!-- Channel 44 -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-12 rounded-2xl bg-slate-500/50 text-white flex items-center justify-center text-[9px] font-mono">0</div>
+<div class="w-full h-10 rounded-2xl bg-white/90 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 44</span>
+</div>
+<!-- Channel 48 -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-8 rounded-2xl bg-white/80 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 48</span>
+</div>
+<!-- Channel 149 -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full max-w-[42px] flex flex-col items-center gap-1">
+<div class="w-full h-14 rounded-2xl bg-slate-500/40"></div>
+<div class="w-full h-8 rounded-2xl bg-white/80 shadow-sm"></div>
+</div>
+<span class="text-[10px] font-semibold text-slate-600">Ch 149</span>
+</div>
+</div>
+</div>
+<!-- Side Floating Neumorphic Action Dock (like circular right tab in Image 1) -->
+<div class="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 flex-col items-center gap-2.5 p-1.5 rounded-full bg-white/90 backdrop-blur shadow-neu border border-white">
+<button class="w-8 h-8 rounded-full bg-darkPill text-white flex items-center justify-center shadow-md">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-700 flex items-center justify-center transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-700 flex items-center justify-center transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-xs">···</button>
+</div>
+</section>
+<!-- 4-Column Neumorphic KPI Cards Grid (Preserving All Original Metrics) -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-purpose="metric-telemetry-cards">
+<!-- Metric 1: Threats Detected -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white flex flex-col justify-between hover:translate-y-[-2px] transition-transform">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-xs font-semibold text-textMuted uppercase tracking-wider">Threats Detected</p>
+<h3 class="text-3xl font-extrabold text-textMain mt-1.5 font-mono">0</h3>
+</div>
+<div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shadow-sm">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+<span class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> 0 Critical, 0 High Risk
+              </span>
+<span class="text-[10px] font-mono text-slate-400">All Clear</span>
+</div>
+</div>
+<!-- Metric 2: Wi-Fi Frames Analyzed -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white flex flex-col justify-between hover:translate-y-[-2px] transition-transform">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-xs font-semibold text-textMuted uppercase tracking-wider">Wi-Fi Frames Analyzed</p>
+<h3 class="text-3xl font-extrabold text-textMain mt-1.5 font-mono">4</h3>
+</div>
+<div class="w-10 h-10 rounded-2xl bg-cyan-50 text-cyan-600 border border-cyan-100 flex items-center justify-center shadow-sm">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7zm0 5h16" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-textMuted font-medium">
+<span>Across 1 network capture</span>
+<span class="font-mono text-slate-500 text-[10px]">PCAP Safe</span>
+</div>
+</div>
+<!-- Metric 3: AI Accuracy Rate -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white flex flex-col justify-between hover:translate-y-[-2px] transition-transform">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-xs font-semibold text-textMuted uppercase tracking-wider">AI Accuracy Rate</p>
+<h3 class="text-3xl font-extrabold text-emerald-600 mt-1.5 font-mono">100.0%</h3>
+</div>
+<div class="w-10 h-10 rounded-2xl bg-[#D7F3EE] text-[#1E9E88] border border-[#C4EBE4] flex items-center justify-center shadow-sm">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-700 font-semibold">
+<span class="flex items-center gap-1">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+                Random Forest v1.4
+              </span>
+<span class="text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full">Trained</span>
+</div>
+</div>
+<!-- Metric 4: Evidence Traceability -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white flex flex-col justify-between hover:translate-y-[-2px] transition-transform">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-xs font-semibold text-textMuted uppercase tracking-wider">Evidence Traceability</p>
+<h3 class="text-3xl font-extrabold text-purple-600 mt-1.5 font-mono">100.0%</h3>
+</div>
+<div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shadow-sm">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-textMuted">
+<span>Backed by packet trace</span>
+<span class="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-mono">SHAP</span>
+</div>
+</div>
+</section>
+<!-- Lower Widgets Row: Styled precisely like the 3 lower containers in Image 1 -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<!-- Box 1: Most Active Spectrum Channels (mirrors "Most used" with vertical pill bars) -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-1">
+<h4 class="font-extrabold text-lg text-textMain">Perimeter Spectrum</h4>
+<span class="text-xs font-mono text-slate-400">5 Audited Frequencies</span>
+</div>
+<p class="text-xs text-textMuted">RF density and channel health index</p>
+</div>
+<!-- Vertical Neumorphic Bars matching Image 1 -->
+<div class="flex items-end justify-between gap-2.5 my-5 px-2">
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-slate-100 rounded-full h-28 relative flex items-end p-1">
+<div class="w-full rounded-full bg-accentMint h-[30%]"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-700">30%</span>
+<span class="text-[10px] font-mono text-slate-400">Ch 1</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-slate-100 rounded-full h-28 relative flex items-end p-1">
+<div class="w-full rounded-full bg-purple-200 h-[72%]"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-700">72%</span>
+<span class="text-[10px] font-mono text-slate-400">Ch 6</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-slate-100 rounded-full h-28 relative flex items-end p-1">
+<div class="w-full rounded-full bg-darkPill h-[52%]"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-700">52%</span>
+<span class="text-[10px] font-mono text-slate-400">Ch 11</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-slate-100 rounded-full h-28 relative flex items-end p-1">
+<div class="w-full rounded-full bg-accentMint h-[76%]"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-700">76%</span>
+<span class="text-[10px] font-mono text-slate-400">Ch 36</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-slate-100 rounded-full h-28 relative flex items-end p-1">
+<div class="w-full rounded-full bg-purple-200 h-[27%]"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-700">27%</span>
+<span class="text-[10px] font-mono text-slate-400">Ch 40</span>
+</div>
+</div>
+<!-- Footer Icons -->
+<div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-textMuted">
+<span class="font-medium">Signal Integrity</span>
+<span class="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px]">Optimal</span>
+</div>
+</div>
+<!-- Box 2: Protection & Verification Speed (mirrors "Protection" with mint curve card & dark pill in Image 1) -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-1">
+<h4 class="font-extrabold text-lg text-textMain">Airspace Protection</h4>
+<span class="text-xs font-semibold text-emerald-600">Active Shield</span>
+</div>
+<p class="text-xs text-textMuted">Real-time heuristics &amp; classifier speed</p>
+</div>
+<div class="space-y-3 my-2">
+<!-- Soft Mint Mini Card with Dotted Arc Curve -->
+<div class="bg-[#D7F3EE] rounded-2xl p-3.5 relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold text-darkPill uppercase tracking-wider">Shield Strength</span>
+<span class="text-[10px] font-bold text-slate-600">99.8%</span>
+</div>
+<!-- Arc decoration dots -->
+<div class="flex items-end justify-center gap-1.5 py-2.5">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500/40"></span>
+<span class="w-2 h-2 rounded-full bg-slate-600/50"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-darkPill"></span>
+<span class="w-2 h-2 rounded-full bg-slate-600/50"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500/40"></span>
+</div>
+<div class="flex items-center justify-between text-[11px] font-semibold text-slate-700">
+<span>Packet Drop Resistance</span>
+<span class="font-mono text-darkPill">Max</span>
+</div>
+</div>
+<!-- High Contrast Dark Neumorphic Pill Card (Wave graph like Image 1) -->
+<div class="bg-darkPill rounded-2xl p-3.5 text-white shadow-neu">
+<div class="flex items-center justify-between text-[11px]">
+<span class="text-slate-400 font-medium">Inference Speed</span>
+<span class="font-mono text-emerald-400 font-bold">1.2ms <span class="text-[9px] text-slate-400">per frame</span></span>
+</div>
+<!-- Stepped waveform line -->
+<div class="h-8 flex items-end gap-1 mt-2 mb-1">
+<div class="flex-1 bg-white/20 h-[30%] rounded-xs"></div>
+<div class="flex-1 bg-white/30 h-[45%] rounded-xs"></div>
+<div class="flex-1 bg-white/40 h-[60%] rounded-xs"></div>
+<div class="flex-1 bg-white/60 h-[80%] rounded-xs"></div>
+<div class="flex-1 bg-emerald-400 h-[100%] rounded-xs shadow-sm"></div>
+<div class="flex-1 bg-white/50 h-[70%] rounded-xs"></div>
+<div class="flex-1 bg-white/30 h-[40%] rounded-xs"></div>
+<div class="flex-1 bg-white/20 h-[25%] rounded-xs"></div>
+</div>
+</div>
+</div>
+<div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+<span>Classifier: RF Forest</span>
+<span class="font-mono text-darkPill font-bold">0 False Positives</span>
+</div>
+</div>
+<!-- Box 3: Self-Explaining AI & Status Banner (mirrors Update card in Image 1) -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-1">
+<h4 class="font-extrabold text-lg text-textMain">XAI Diagnostics</h4>
+<span class="text-xs font-mono text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full font-bold">Gemini 2.5</span>
+</div>
+<p class="text-xs text-textMuted">Plain-English packet audit narrative</p>
+</div>
+<!-- Soft Graphic Card with Pill CTA -->
+<div class="my-2 p-4 rounded-2xl bg-gradient-to-br from-slate-50 via-slate-100 to-purple-50 border border-slate-200/70 flex flex-col items-center text-center">
+<div class="w-12 h-12 rounded-full bg-white shadow-neu flex items-center justify-center text-purple-600 mb-2">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h5 class="text-sm font-bold text-textMain">Zero Malicious Vectors</h5>
+<p class="text-[11px] text-textMuted mt-1 leading-snug">No spoofed beacon frames, deauth cascades, or RSSI deviations found.</p>
+<div class="flex items-center gap-2 mt-3">
+<span class="px-3 py-1 rounded-full bg-white shadow-pill text-[10px] font-bold text-darkPill border border-slate-200">
+                  Read Audit
+                </span>
+<span class="px-3 py-1 rounded-full bg-darkPill text-[10px] font-bold text-white shadow-pill">
+                  Explain
+                </span>
+</div>
+</div>
+<div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+<span>Corpus Status:</span>
+<span class="text-emerald-600 font-bold">100% Traceable</span>
+</div>
+</div>
+</div>
+<!-- Detection Vectors Section with Refined Neumorphic Cards -->
+<section class="space-y-3" data-purpose="detection-vectors-section">
+<div class="flex items-center justify-between px-2">
+<h3 class="text-xs font-bold tracking-wider text-textMuted uppercase">Detection Vectors &amp; XAI Classifiers</h3>
+<span class="text-xs font-mono text-accentMintDark font-semibold">3 Active Classifiers</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Vector 1: Disconnect Attacks -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white hover:shadow-neu-card transition-all">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shadow-sm">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<h4 class="font-bold text-sm text-textMain">Disconnect Attacks</h4>
+<p class="text-[10px] font-mono text-slate-400">Deauth / Disassoc Flood</p>
+</div>
+</div>
+<span class="px-2.5 py-1 text-[10px] font-mono rounded-full bg-rose-100/70 text-rose-700 font-bold">Layer 2</span>
+</div>
+<p class="text-xs text-textMuted leading-relaxed">
+                Detects spoofed management frames injected by attackers to sever wireless clients from legitimate APs.
+              </p>
+</div>
+<!-- Vector 2: Fake Wi-Fi Traps -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white hover:shadow-neu-card transition-all">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shadow-sm">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<h4 class="font-bold text-sm text-textMain">Fake Wi-Fi Traps</h4>
+<p class="text-[10px] font-mono text-slate-400">Evil Twin / Rogue AP</p>
+</div>
+</div>
+<span class="px-2.5 py-1 text-[10px] font-mono rounded-full bg-purple-100 text-purple-700 font-bold">Rogue AP</span>
+</div>
+<p class="text-xs text-textMuted leading-relaxed">
+                Flags unauthorized access points broadcasting corporate SSIDs with mismatched OUI signatures or anomalous RSSI deltas.
+              </p>
+</div>
+<!-- Vector 3: Self-Explaining AI -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white hover:shadow-neu-card transition-all">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-2xl bg-[#D7F3EE] border border-[#C4EBE4] flex items-center justify-center text-accentMintDark shadow-sm">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<h4 class="font-bold text-sm text-textMain">Self-Explaining AI</h4>
+<p class="text-[10px] font-mono text-slate-400">Feature Importance + LLM</p>
+</div>
+</div>
+<span class="px-2.5 py-1 text-[10px] font-mono rounded-full bg-[#C4EBE4] text-[#0E6859] font-bold">Gemini 2.5</span>
+</div>
+<p class="text-xs text-textMuted leading-relaxed">
+                Translates high-dimensional feature attribution scores into conversational, incident-responder ready forensics.
+              </p>
+</div>
+</div>
+</section>
+</main>
+<!-- Right Column: Control Center & Scanner Deck (Styled matching right column in Image 1) -->
+<aside class="w-72 lg:w-80 flex-col gap-5 shrink-0 hidden xl:flex">
+<!-- Airspace Radar Visualizer Card (mirrors circular head wireframe box in Image 1) -->
+<div class="bg-white rounded-[32px] p-5 shadow-neu border border-white flex flex-col items-center text-center relative overflow-hidden">
+<div class="w-full flex justify-between items-center mb-2">
+<span class="text-xs font-bold text-textMain">Live Radar Sweep</span>
+<button class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:text-black">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Radar Circular Wireframe Display -->
+<div class="relative w-40 h-40 my-3 flex items-center justify-center">
+<!-- Concentric Neumorphic Rings -->
+<div class="absolute inset-0 rounded-full border border-slate-200"></div>
+<div class="absolute inset-4 rounded-full border border-slate-200/80"></div>
+<div class="absolute inset-8 rounded-full border border-accentMintDark/30"></div>
+<!-- Soft mint sweep beam -->
+<div class="absolute inset-0 rounded-full bg-gradient-to-tr from-accentMint/40 to-transparent opacity-70 animate-spin" style="animation-duration: 7s;"></div>
+<!-- Center Radar Node -->
+<div class="w-12 h-12 rounded-full bg-darkPill text-white shadow-neu flex items-center justify-center z-10">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<!-- Detected Node Dots -->
+<span class="absolute top-7 right-8 w-2 h-2 rounded-full bg-emerald-500 shadow-sm"></span>
+<span class="absolute bottom-9 left-7 w-2 h-2 rounded-full bg-accentMintDark shadow-sm"></span>
+<span class="absolute top-12 left-10 w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+</div>
+<h4 class="font-extrabold text-base text-textMain mt-1">Airspace Clear</h4>
+<p class="text-xs text-textMuted mt-0.5">315 BSSIDs synchronized &amp; verified</p>
+<!-- Launch Live Airspace Scan Action Button (Dark Pill) -->
+<button class="w-full mt-4 py-3 px-4 rounded-full bg-darkPill hover:bg-black text-white font-bold text-xs tracking-wide shadow-neu flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+<svg class="w-4 h-4 text-accentMint" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<path d="M12 4v1m6.364 1.636l-.707.707M20 12h-1m-1.636 6.364l-.707-.707M12 20v-1m-6.364-1.636l.707-.707M4 12h1m1.636-6.364l.707.707" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Launch Live Airspace Scan</span>
+</button>
+</div>
+<!-- Analysts & Audit Team Capsule (mirrors avatar row in Image 1) -->
+<div class="bg-white rounded-3xl p-4 shadow-neu border border-white">
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-bold text-textMain">Active SecOps Team</span>
+<a class="text-[11px] font-semibold text-slate-500 hover:text-black" href="#team">view all &gt;</a>
+</div>
+<div class="flex items-center justify-between bg-slate-50 p-2 rounded-2xl border border-slate-100">
+<div class="flex items-center -space-x-2">
+<img alt="Elena" class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_H4OM6pFCauxiqoeMBak9dHxWIbmtus5mXK3ZekTKKkcuyRV76b0Q4logKP8qErssYa9Y7Rk0SwScBUB3MKLc-FSxgDxOYFjr0G0DszAbwZavnOjK6kT4cWj0isToYo_vmk8Rp9YnpjDsdMw8IfvS2XF02feLAuzaqKLNss7iQ6clgDtV8XFV2Pq042BNLtteoWEsiiB5rwpT8rb2qfwq4AwdV_h7UMBVmktEj1H8E9tNFjs8vJJvIA"/>
+<img alt="Alex" class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxMJlrPtbMzAIE5YH76zea4FZApJ-Cc8kgVruGO8V8su-zdSL-8rSUgfjAvBfQljz8_yBawMTJHyBHHOJ5fl0TTIXbAuoquMwepkFarW58PEErvB19HBxPSz_HY1HA2rwowHUjUqQ-qlkWiTu3ZgYcATweRo8SxybBT5RYxpwEUxWTvCti3q4pPl6kaLis7j6cPwbIRwCvBxM9pQUBzAKKxJgbwJYqKA4hSQ5BrwDVihX7_235uQvq7g"/>
+<img alt="Sam" class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbeHU8dnQ47BjTQXIfpnorzpa8wYJGPvJQXzoDNXZIIK4offN5FK2ZaZscvii9rYVFFm4r5nQFdh9BEJNzeXT8QsqtoZqq4DGEPppAfyoe3n_jdqKD1iMJDw34E5xPlWcdmAlm5ppG-UJ9tpSi-diU7PHwrHwqig8NS_WqwrB-CsZkFAwfmdzWqwtqt46fJuI4mlBz6B6o_TSHx3766iRtqCCu6uF7RbiPPUmBrowmAoL_rgV4Q5ELKw"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">+4</div>
+</div>
+<span class="px-3 py-1 rounded-full bg-white text-[10px] font-bold text-darkPill shadow-sm border border-slate-200">
+              Shift 1
+            </span>
+</div>
+</div>
+<!-- Monitored SSIDs / Access Points List (mirrors Resources in Image 1) -->
+<div class="bg-white rounded-3xl p-5 shadow-neu border border-white flex flex-col justify-between flex-1">
+<div>
+<div class="flex items-center justify-between mb-3">
+<h4 class="font-extrabold text-sm text-textMain">Monitored Networks</h4>
+<span class="text-[10px] font-mono text-slate-400">14 Trusted APs</span>
+</div>
+<!-- AP Item 1 -->
+<div class="space-y-2">
+<div class="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-700">HQ</span>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-textMain">Corp-Internal_5G</span>
+<span class="text-[10px] text-slate-400 font-mono">Channel 36 • WPA3</span>
+</div>
+</div>
+<!-- Toggle pill -->
+<div class="w-10 h-5 bg-darkPill rounded-full p-0.5 flex justify-end items-center cursor-pointer">
+<span class="w-4 h-4 rounded-full bg-white"></span>
+</div>
+</div>
+<!-- AP Item 2 -->
+<div class="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-700">G</span>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-textMain">Guest-Airspace</span>
+<span class="text-[10px] text-slate-400 font-mono">Channel 6 • Isolated</span>
+</div>
+</div>
+<!-- Toggle pill on -->
+<div class="w-10 h-5 bg-accentMint rounded-full p-0.5 flex justify-end items-center cursor-pointer">
+<span class="w-4 h-4 rounded-full bg-white shadow-sm"></span>
+</div>
+</div>
+<!-- AP Item 3 -->
+<div class="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-700">IoT</span>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-textMain">Facilities-Sensors</span>
+<span class="text-[10px] text-slate-400 font-mono">Channel 1 • 802.11ax</span>
+</div>
+</div>
+<!-- Toggle pill on -->
+<div class="w-10 h-5 bg-accentMint rounded-full p-0.5 flex justify-end items-center cursor-pointer">
+<span class="w-4 h-4 rounded-full bg-white shadow-sm"></span>
+</div>
+</div>
+<!-- AP Item 4 -->
+<div class="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-700">LB</span>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-textMain">Lab-Airgap-Mon</span>
+<span class="text-[10px] text-slate-400 font-mono">Channel 149 • Strict</span>
+</div>
+</div>
+<!-- Toggle pill off -->
+<div class="w-10 h-5 bg-slate-200 rounded-full p-0.5 flex justify-start items-center cursor-pointer">
+<span class="w-4 h-4 rounded-full bg-white shadow-sm"></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Expand / Load PCAP High Contrast Dark Capsule (mirrors bottom black box in Image 1) -->
+<div class="mt-4 bg-darkPill rounded-2xl p-4 text-white shadow-neu">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[11px] font-semibold text-slate-300">PCAP Buffer</span>
+<span class="text-xs font-bold font-mono text-accentMint">17 / 60 MB</span>
+</div>
+<!-- Dotted gauge progress bar -->
+<div class="flex items-center justify-between gap-1 my-2">
+<span class="h-1.5 flex-1 bg-accentMint rounded-full"></span>
+<span class="h-1.5 flex-1 bg-accentMint rounded-full"></span>
+<span class="h-1.5 flex-1 bg-accentMint rounded-full"></span>
+<span class="h-1.5 flex-1 bg-slate-700 rounded-full"></span>
+<span class="h-1.5 flex-1 bg-slate-700 rounded-full"></span>
+<span class="h-1.5 flex-1 bg-slate-700 rounded-full"></span>
+</div>
+<p class="text-[11px] text-slate-400 mt-2 font-medium">Load scenario capture or raw 802.11 frames</p>
+<button class="w-full mt-3 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Load PCAP File</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+<!-- Clean Minimalist Footer -->
+<footer class="mt-4 pt-3 border-t border-slate-300/60 flex flex-col sm:flex-row items-center justify-between gap-2 px-3 text-xs text-textMuted font-medium">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Engine: <strong class="text-textMain">RandomForest v1.4</strong>
+</span>
+<span>•</span>
+<span>Explainability: <strong class="text-purple-700">SHAP / Gemini 2.5</strong></span>
+</div>
+<div>
+<span>Wireless-IDS Airspace Perimeter SecOps • Version 2.5 Neumorphic Release</span>
+</div>
+</footer>
+</div>
+</body></html>
